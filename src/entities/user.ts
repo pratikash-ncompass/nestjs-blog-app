@@ -24,7 +24,7 @@ export class User {
     lastName: string;
 
     @Column({ default: 'viewer' })
-    roleId: string;
+    roleId: number;
 
     @OneToOne(() => Editor, editor => editor.user)
     @JoinColumn()
