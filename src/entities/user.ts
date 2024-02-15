@@ -6,7 +6,7 @@ import { Viewer } from "./viewer";
 @Entity({ name: 'users' }) 
 export class User {
     @PrimaryGeneratedColumn('uuid') 
-    userId: number;
+    userId: string;
 
     @Column({ unique: true })
     emailId: string;
