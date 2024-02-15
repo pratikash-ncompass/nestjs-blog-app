@@ -1,68 +1,42 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { LoginUserDto } from './dto/login-user.dto';
+
+// @Injectable()
+// export class AuthService {
+//   authUser(loginUserDto: LoginUserDto) {
+//     return 'This action adds a new auth';
+//   }
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user';
 import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
+import * as md5 from 'md5';
+import { CustomError } from 'src/utils/custom-error';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
+    @InjectRepository(User) private userRepository: Repository<User>,
+    private jwtService: JwtService,
   ) {}
 
-  create(loginUserDto: LoginUserDto) {
-    return 'This action adds a new auth';
+  async validateUser(username: string, password: string) {
+    const hashedPassword = md5(password);
+
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.username = :username', { username: username })
+      .andWhere('user.password = :password', { password: hashedPassword })
+      .getOne();
+
+    return user;
   }
 
-  findAll() {
-    return `This action returns all auth`;
+  async loginTokenGeneration(loginUserDto: LoginUserDto) {
+    const payload = { username: loginUserDto.username };
+    const accessToken = await this.jwtService.sign(payload);
+
+    return accessToken;
   }
-
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
-  }
-
-  // async assignRoles(
-  //   loggedInUserId: number,
-  //   targetUserId: number,
-  //   // roles: UserRole[],
-  //   isAdmin: boolean,
-  //   isSuperAdmin: boolean,
-  // ): Promise<User> {
-  //   // Check if the logged-in user is authorized
-  //   const loggedInUser = await this.userRepository.findOne(loggedInUserId);
-
-  //   if (!loggedInUser) {
-  //     throw new NotFoundException('Logged-in user not found');
-  //   }
-
-  //   if (!isAdmin && !isSuperAdmin) {
-  //     throw new UnauthorizedException(
-  //       'Unauthorized. Only admin or superadmin can assign roles.',
-  //     );
-  //   }
-
-  //   // Fetch the target user
-  //   const targetUser = await this.userRepository.findOne(targetUserId);
-
-  //   if (!targetUser) {
-  //     throw new NotFoundException('Target user not found');
-  //   }
-
-  //   // Check if the logged-in user has the authority to assign roles
-  //   if (isAdmin && !isSuperAdmin && !loggedInUser.isAdmin) {
-  //     throw new UnauthorizedException(
-  //       'Unauthorized. Only superadmin can assign admin roles.',
-  //     );
-  //   }
-
-  //   // Assign roles to the target user
-  //   // targetUser.roles = roles;
-
-  //   // Save changes to the database
-  //   await this.userRepository.save(targetUser);
-
-  //   return targetUser;
-  // }
 }
