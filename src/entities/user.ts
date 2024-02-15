@@ -23,7 +23,7 @@ export class User {
     @Column()
     lastName: string;
 
-    @Column({ default: 'viewer' })
+    @Column({ default: 3 })
     roleId: number;
 
     @OneToOne(() => Editor, editor => editor.user)
