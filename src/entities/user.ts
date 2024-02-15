@@ -11,7 +11,7 @@ export class User {
     @Column({ unique: true })
     emailId: string;
 
-    @Column()
+    @Column({ unique: true })
     username: string;
 
     @Column()
@@ -24,7 +24,7 @@ export class User {
     lastName: string;
 
     @Column({ default: 'viewer' })
-    role: string;
+    roleId: number;
 
     @OneToOne(() => Editor, editor => editor.user)
     @JoinColumn()
