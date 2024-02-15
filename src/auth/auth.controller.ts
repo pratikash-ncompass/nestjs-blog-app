@@ -12,6 +12,11 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly jwtService: JwtService) {}
 
+
+  // @Post()
+  // create(@Body() loginUserDto: LoginUserDto) {
+  //   return this.authService.authUser(loginUserDto);
+
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async userLogin(@Body() loginUserDto: LoginUserDto) {

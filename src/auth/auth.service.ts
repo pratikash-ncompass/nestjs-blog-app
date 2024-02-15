@@ -1,5 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { LoginUserDto } from './dto/login-user.dto';
+
+
+// @Injectable()
+// export class AuthService {
+//   authUser(loginUserDto: LoginUserDto) {
+//     return 'This action adds a new auth';
+//   }
+
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user';
 import { Repository } from 'typeorm';
@@ -30,4 +38,5 @@ export class AuthService {
     const accessToken = await this.jwtService.sign(payload);
     return accessToken;
   }
+
 }
