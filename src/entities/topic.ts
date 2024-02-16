@@ -1,14 +1,16 @@
-import { Column, Entity, JoinColumn, ManyToMany, OneToMany, PrimaryColumn} from "typeorm";
-import * as md5 from 'md5';
-import { UUID } from "crypto";
-import { ColdObservable } from "rxjs/internal/testing/ColdObservable";
-import { Editor } from "./editor";
+import { BeforeInsert, Column, Entity, JoinColumn, OneToMany, PrimaryColumn} from "typeorm";
+import { v4 as uuidv4 } from 'uuid'
 import { Blog } from "./blog";
 
 @Entity() 
 export class Topic {
     @PrimaryColumn('uuid') 
     topicId: string;
+
+    @BeforeInsert() 
+    beforeInsertFunc() {
+        this.topicId = uuidv4();
+    }
 
     @Column()
     userId: string;
@@ -26,5 +28,7 @@ export class Topic {
     @OneToMany(() => Blog, blog => blog.topic) 
     @JoinColumn()
     blog: Blog;
+
+    
 
 }

@@ -1,6 +1,4 @@
-import { Column, Entity, OneToMany, OneToOne, PrimaryColumn} from "typeorm";
-import * as md5 from 'md5';
-import { UUID } from "crypto";
+import { Entity, OneToOne, PrimaryColumn} from "typeorm";
 import { User } from "./user";
 
 @Entity() 

@@ -1,42 +1,42 @@
-import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryColumn, PrimaryGeneratedColumn} from "typeorm";
+import { BeforeInsert, Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn} from "typeorm";
 // import { Role } from "./role";
 import { Editor } from "./editor";
 import { Viewer } from "./viewer";
 import * as md5 from 'md5';
 
-@Entity({ name: 'users' }) 
+@Entity({ name: 'users' })
 export class User {
-    @PrimaryGeneratedColumn('uuid') 
-    userId: string;
+  @PrimaryGeneratedColumn('uuid')
+  userId: string;
 
-    @Column({ unique: true })
-    emailId: string;
+  @Column({ unique: true })
+  emailId: string;
 
-    @Column({ unique: true })
-    username: string;
+  @Column({ unique: true })
+  username: string;
 
-    @Column()
-    password: string;
+  @Column()
+  password: string;
 
-    @BeforeInsert()
-    hashPassword() {
-        this.password = md5(this.password);
-    }
+  @BeforeInsert()
+  hashPassword() {
+      this.password = md5(this.password);
+  }
 
-    @Column()
-    firstName: string;
+  @Column()
+  firstName: string;
 
-    @Column()
-    lastName: string;
+  @Column()
+  lastName: string;
 
-    @Column({ default: 3 })
-    roleId: number;
+  @Column({ default: 3 })
+  roleId: number;
 
-    @OneToOne(() => Editor, editor => editor.user)
-    @JoinColumn()
-    editor: Editor;
+  @OneToOne(() => Editor, (editor) => editor.user)
+  @JoinColumn()
+  editor: Editor;
 
-    @OneToOne(() => Viewer, viewer => viewer.user)
-    @JoinColumn()
-    viewer: Viewer;
+  @OneToOne(() => Viewer, (viewer) => viewer.user)
+  @JoinColumn()
+  viewer: Viewer;
 }

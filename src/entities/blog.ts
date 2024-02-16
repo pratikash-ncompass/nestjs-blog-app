@@ -1,5 +1,6 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn} from "typeorm";
+import { BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, UpdateDateColumn} from "typeorm";
 import { Topic } from "./topic";
+import { v4 as uuidv4 } from 'uuid'
 
 @Entity() 
 export class Blog {
@@ -8,6 +9,11 @@ export class Blog {
 
     @PrimaryColumn('uuid') 
     blogId: string;
+
+    @BeforeInsert() 
+    beforeInsertFunc() {
+        this.blogId = uuidv4();
+    }
 
     @Column()
     topicId: string;

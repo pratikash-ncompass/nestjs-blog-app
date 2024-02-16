@@ -1,19 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { LoginUserDto } from './dtos/login-user.dto';
-
-
-// @Injectable()
-// export class AuthService {
-//   authUser(loginUserDto: LoginUserDto) {
-//     return 'This action adds a new auth';
-//   }
-
+import { Injectable, NotFoundException, Req, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as md5 from 'md5';
-import { CustomError } from 'src/utils/custom-error';
+import { LoginUserDto } from './dtos/login-user.dto';
 
 @Injectable()
 export class AuthService {
