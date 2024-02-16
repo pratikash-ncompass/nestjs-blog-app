@@ -11,11 +11,13 @@ import { AssignTopicDto } from './dtos/assign-topic.dto';
 import { Topic } from 'src/entities/topic';
 import { Editor } from 'src/entities/editor';
 import { Viewer } from 'src/entities/viewer';
+import { Role } from 'src/entities/role';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(Role) private roleRepository: Repository<Role>,
     @InjectRepository(Topic) private topicRepository: Repository<Topic>,
     @InjectRepository(Editor) private editorRepository: Repository<Editor>,
     @InjectRepository(Viewer) private viewerRepository: Repository<Viewer>,
@@ -61,11 +63,13 @@ export class AuthService {
 
   async assignRoles(username: string, updateRoleDto: UpdateRoleDto) {
     try {
+      
       const superadminAssignableRoles = [2, 3, 4];
       const adminAssignableRoles = [3, 4];
 
       const fetchedUser = await this.userRepository.findOne({ where : { username: updateRoleDto.username }});
       const changingRoleUser = await this.userRepository.findOne({ where : { username }});
+      const fetchedUserRoleId = fetchedUser.roleId;
       const toBeChangedRole = updateRoleDto.roleId;   
 
       if (!(changingRoleUser.roleId === 1 || changingRoleUser.roleId === 2)) {
@@ -86,6 +90,7 @@ export class AuthService {
       fetchedUser.roleId = updateRoleDto.roleId;
   
       await this.userRepository.save(fetchedUser);
+      return {previousRole: fetchedUserRoleId, currentRole: fetchedUser.roleId};
     } catch (error) {
       throw new Error(error);
     }
@@ -111,9 +116,7 @@ export class AuthService {
     const loggedInUser = await this.userRepository.findOne({ where : { username }});
     const fetchedUser = await this.userRepository.findOne({ where : { username: assignTopicDto.username }});
     const userRole = loggedInUser.roleId;
-    const fetchedUserRoleId = fetchedUser.roleId;
-    console.log(fetchedUser);
-    
+    const fetchedUserRoleId = fetchedUser.roleId;    
 
     if (!(userRole === 1 || userRole === 2)) {
       throw new UnauthorizedException(`You don't have authrization to assign topics`);
@@ -137,6 +140,6 @@ export class AuthService {
       newViewer.userId = fetchedUser.userId;
       await this.viewerRepository.save(newViewer);
     }
-
+    return assignTopicDto;
   }
 }

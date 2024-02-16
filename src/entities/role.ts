@@ -1,8 +1,10 @@
-// import { Column, Entity, OneToMany, PrimaryColumn} from "typeorm";
-// import { User } from "./user";
+import { Column, Entity, OneToMany, PrimaryColumn} from "typeorm";
 
-// @Entity() 
-// export class Role {
-//     @PrimaryColumn()
-//     roleName: string;
-// }
+@Entity() 
+export class Role {
+    @PrimaryColumn()
+    roleId: number;
+
+    @Column()
+    roleName: string;
+}

@@ -11,13 +11,14 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { Topic } from 'src/entities/topic';
 import { Editor } from 'src/entities/editor';
 import { Viewer } from 'src/entities/viewer';
+import { Role } from 'src/entities/role';
 
 @Module({
   imports :[
     ConfigModule.forRoot({
       isGlobal: true
     }),
-    TypeOrmModule.forFeature([User, Topic, Editor, Viewer]),
+    TypeOrmModule.forFeature([User, Topic, Editor, Viewer, Role]),
     JwtModule.register({
       secret: process.env.SECRET_KEY,
       signOptions: { expiresIn: '5h' },

@@ -67,7 +67,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('assing-topic') 
+  @Post('assign-topic') 
   async assignTopic(@Body() assignTopicDto: AssignTopicDto, @Req() req: Request) {
     const username = req.user['username'];
     
