@@ -3,9 +3,9 @@ import { Response } from 'express';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
-
+  
   catch(exception: any, host: ArgumentsHost) {
-
+    
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const status = exception instanceof HttpException
@@ -14,8 +14,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     response.status(status).json({
       statusCode: status,
       data:{
-        message: exception.message
-      }
+        message: exception.response ? exception.response.message : exception.toString()      }
     });
     
   }

@@ -12,6 +12,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { GlobalExceptionFilter } from './utils/error-handler';
 import { APP_FILTER } from '@nestjs/core';
+import { BlogModule } from './blogs/blog.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { APP_FILTER } from '@nestjs/core';
     }),
     UsersModule,
     AuthModule,
+    BlogModule
   ],
   controllers: [AppController],
   providers: [AppService, {provide:APP_FILTER, useClass: GlobalExceptionFilter}],
