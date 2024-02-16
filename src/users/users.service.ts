@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserDto } from './dtos/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from 'src/entities/user';
 import * as md5 from 'md5';
+import { Repository } from 'typeorm';
+
+import { CreateUserDto } from './dtos/create-user.dto';
+import { User } from 'src/entities/user';
 
 @Injectable()
 export class UsersService {
@@ -37,5 +38,9 @@ export class UsersService {
       throw new NotFoundException(`User with id ${id} not found`);
     }
     return user;
+  }
+
+  async userDetails(username: string) {
+    return await this.userRepository.findOne({ where: { username }});
   }
 }

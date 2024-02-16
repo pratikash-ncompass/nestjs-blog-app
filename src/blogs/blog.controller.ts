@@ -1,9 +1,9 @@
 import { Body, Controller, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Request } from 'express';
+
 import { BlogService } from './blog.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
-import { AuthGuard } from '@nestjs/passport';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { Request } from 'express';
 import { CustomApiResponse } from 'src/utils/send-response';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 

@@ -1,10 +1,11 @@
 import { Body, Controller, Post, Req, Res, UseGuards } from "@nestjs/common";
 import { Request, Response } from "express";
+
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
 import { TopicService } from "./topic.service";
 import { CreateTopicDto } from "./dtos/create-topic.dto";
 import { CustomApiResponse } from "src/utils/send-response";
-import { UpdateTopicDto } from "./dtos/update-topic.dto";
+import { AssignTopicDto } from "./dtos/assign-topic.dto";
 
 
 @Controller('topic')
@@ -24,6 +25,15 @@ export class TopicController {
         } catch (error) {
             throw new Error(error)
         }
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('assign-topic') 
+    async assignTopic(@Body() assignTopicDto: AssignTopicDto, @Req() req: Request) {
+      const username = req.user['username'];
+      
+      const data = await this.topicService.assignTopic(username, assignTopicDto);
+      return new CustomApiResponse(200, 'User Role Updated', data);
     }
 
     // @UseGuards(JwtAuthGuard)
