@@ -1,18 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from 'src/entities/user';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UsersService {
-
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
     // @InjectRepository(Role) private roleRepository: Repository<Role>
-    ) {}
+  ) {}
 
   async create(createUserDto: CreateUserDto) {
     const newUser = new User();
@@ -27,19 +26,22 @@ export class UsersService {
     return newUser;
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findUserById(id: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { userId: id } });
+    if (!user) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+    return user;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
+  // async isAdmin(userId: number): Promise<boolean> {
+  //   const user = await this.userRepository.findOne(userId);
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
+  //   if (!user) {
+  //     throw new NotFoundException(`User with id ${userId} not found`);
+  //   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
+  //   // Check if the user has admin role
+  //   return user.isAdmin === true;
+  // }
 }
