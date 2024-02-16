@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { LoginUserDto } from './dto/login-user.dto';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { LoginUserDto } from './dtos/login-user.dto';
 
 
 // @Injectable()
@@ -20,25 +20,38 @@ export class AuthService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
     private jwtService: JwtService
-    ) { }
+    ) {};
 
   async validateUser(username: string, password: string) {
-    const hashedPassword = md5(password);
-    
-    const user = await this.userRepository
-    .createQueryBuilder('user')
-    .where('user.username = :username', { username: username })
-    .andWhere('user.password = :password', { password: hashedPassword })
-    .getOne();
 
-    return user;
+    try {
+      
+      const hashedUserPassword = md5(password);
+      const user = await this.userRepository.findOne({ where: { username, password: hashedUserPassword } });
+      if(!user) {
+          throw new UnauthorizedException('Unauthorized access.');
+      }
+      return user;
+
+    } catch (error) {
+      
+      throw new Error(error);
+
+    }
   }
 
   async loginTokenGeneration(loginUserDto: LoginUserDto) {
-    const payload = { username: loginUserDto.username };
-    const accessToken = await this.jwtService.sign(payload);
-        
-    return accessToken;
-  }
+    try {
+            
+      const payload = { username: loginUserDto.username };
+      const accessToken = this.jwtService.sign(payload);
+          
+      return accessToken;
 
+  } catch (error) {
+      
+      throw new Error(error);
+
+  }
+  }
 }

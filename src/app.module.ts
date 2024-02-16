@@ -10,6 +10,8 @@ import { Viewer } from './entities/viewer';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { GlobalExceptionFilter } from './utils/error-handler';
+import { APP_FILTER } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -29,6 +31,6 @@ import { AuthModule } from './auth/auth.module';
     UsersModule,
     AuthModule],
   controllers: [AppController],
-  providers: [AppService,],
+  providers: [AppService, {provide:APP_FILTER, useClass: GlobalExceptionFilter}],
 })
 export class AppModule {}
