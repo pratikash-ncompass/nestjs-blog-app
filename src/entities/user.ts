@@ -32,11 +32,11 @@ export class User {
   @Column({ default: 4 })
   roleId: number;
 
-  @OneToOne(() => Editor, (editor) => editor.user)
-  @JoinColumn()
-  editor: Editor;
+  // @OneToOne(() => Editor, (editor) => editor.user)
+  // @JoinColumn()
+  // editor: Editor;
 
-  @OneToOne(() => Viewer, (viewer) => viewer.user)
-  @JoinColumn()
-  viewer: Viewer;
+  // @OneToOne(() => Viewer, (viewer) => viewer.user)
+  // @JoinColumn()
+  // viewer: Viewer;
 }
