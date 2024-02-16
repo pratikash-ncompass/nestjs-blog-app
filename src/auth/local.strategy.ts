@@ -16,7 +16,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
 
     if (!user) {
       throw new CustomError(404, 'User Not Found');
-    }
+    }    
     return user;
   }
 }

@@ -27,6 +27,4 @@ export class UsersController {
     const user = await this.usersService.findUserById(id);
     return new CustomApiResponse(200, 'User fetched succesfully', user);
   }
-
-
 }

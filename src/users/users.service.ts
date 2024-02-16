@@ -21,10 +21,8 @@ export class UsersService {
     newUser.firstName = createUserDto.firstName;
     newUser.lastName = createUserDto.lastName;
     newUser.password = createUserDto.password;
-
-    await this.userRepository.save(newUser);
-    console.log(newUser);
-
+    
+    await this.userRepository.save(newUser)    
     return newUser;
   }
 
