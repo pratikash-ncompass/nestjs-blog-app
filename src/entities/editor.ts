@@ -3,8 +3,8 @@ import { User } from "./user";
 
 @Entity() 
 export class Editor {
-    @OneToOne(() => User, user => user.editor)
-    user: User;
+    // @OneToOne(() => User, user => user.editor)
+    // user: User;
 
     @PrimaryColumn('uuid')
     userId: string;
