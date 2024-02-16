@@ -9,9 +9,9 @@ import { Request } from 'express';
 import { Repository } from 'typeorm';
 
 import { Blog } from 'src/entities/blog';
-import { CreateBlogDto } from './dto/create-blog.dto';
 import { Topic } from 'src/entities/topic';
 import { User } from 'src/entities/user';
+import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 
 @Injectable()
@@ -40,9 +40,7 @@ export class BlogService {
       where: { userId: loggedInUser.userId },
       select: ['name', 'topicId'],
     });
-    // console.log(loggedInUserTopics);
 
-    // console.log(loggedInUserTopics[1].name);
     const permittedTopics = [];
     for (let i = 0; i < loggedInUserTopics.length; i++) {
       permittedTopics.push(loggedInUserTopics[i].name.toLowerCase());
@@ -60,30 +58,26 @@ export class BlogService {
       );
     }
 
-    const topicIdNewBlog = await this.topicRepository.find({
+    const topicNewBlog = await this.topicRepository.find({
       where: { name: createBlogDto.topicName },
-      //   select: ['topicId'],
     });
+
     const fetchedTopic = new Topic();
-    Object.assign(fetchedTopic, topicIdNewBlog[0]);
-    // console.log(fetchedTopic);
+    Object.assign(fetchedTopic, topicNewBlog[0]);
+    console.log(fetchedTopic.name);
 
-    // console.log(topicIdNewBlog[0].topicId);
+    const topicIdNew = topicNewBlog[0].topicId;
 
-    const newBlog = new Blog();
-    newBlog.topicId = topicIdNewBlog[0].topicId;
-    newBlog.userId = loggedInUserDetails.userId;
-    newBlog.name = createBlogDto.name;
-    newBlog.desc = createBlogDto.desc;
-    newBlog.header = createBlogDto.header;
-    newBlog.body = createBlogDto.body;
-    newBlog.footer = createBlogDto.footer;
-
-    // console.log(newBlog);
+    const newBlog = this.blogRepository.create({
+      ...createBlogDto,
+      topicId: topicIdNew,
+      userId: loggedInUserDetails.userId,
+    });
     newBlog.topic = fetchedTopic;
+    let savedBlog = await this.blogRepository.save(newBlog);
+    const { blogId, topicId, userId, ...createdBlog } = savedBlog;
 
-    await this.blogRepository.save(newBlog);
-    return newBlog;
+    return createdBlog;
   }
 
   async update(id: string, updateBlogDto: UpdateBlogDto, req: Request) {
@@ -100,7 +94,7 @@ export class BlogService {
         'You do not have access to edit this blog since you have not created it.',
       );
     }
-    
+
     currentBlog.name = updateBlogDto.name
       ? updateBlogDto.name
       : currentBlog.name;
