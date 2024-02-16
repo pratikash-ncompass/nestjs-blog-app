@@ -1,26 +1,69 @@
-import { Injectable } from '@nestjs/common';
-import { CreateTopicDto } from './dto/create-topic.dto';
-import { UpdateTopicDto } from './dto/update-topic.dto';
+import { Injectable, Req, UnauthorizedException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Topic } from "src/entities/topic";
+import { Repository } from "typeorm";
+import { Request } from "express";
+import { User } from "src/entities/user";
+import { CreateTopicDto } from "./dtos/create-topic.dto";
+import { UpdateTopicDto } from "./dtos/update-topic.dto";
 
-@Injectable()
+
+@Injectable() 
 export class TopicService {
-  create(createTopicDto: CreateTopicDto) {
-    return 'This action adds a new topic';
-  }
 
-  findAll() {
-    return `This action returns all topic`;
-  }
+    constructor(
+        @InjectRepository(Topic) private topicRepository: Repository<Topic>,
+        @InjectRepository(User) private userRepository: Repository<User>,
+    ) {};
 
-  findOne(id: number) {
-    return `This action returns a #${id} topic`;
-  }
+    async createTopic(createTopicDto: CreateTopicDto, req: Request) {
+        try {
 
-  update(id: number, updateTopicDto: UpdateTopicDto) {
-    return `This action updates a #${id} topic`;
-  }
+            const username = req.user['username'];
 
-  remove(id: number) {
-    return `This action removes a #${id} topic`;
-  }
+            const loggedInUser = await this.userRepository.findOne({ where: { username } })
+
+            const roleOfLoggedInUser = loggedInUser.roleId;
+
+            if (!(roleOfLoggedInUser === 1 || roleOfLoggedInUser === 2)) {
+                throw new UnauthorizedException('Not authorized to create topics.')
+            }
+
+            const newTopic = new Topic();
+            newTopic.userId = loggedInUser.userId;
+            newTopic.name = createTopicDto.name;
+            newTopic.desc = createTopicDto.desc;
+
+            const savedTopic = await this.topicRepository.save(newTopic);
+            const { topicId, userId, ...topicDetails } = savedTopic;
+
+            return topicDetails;
+            
+        } catch (error) {
+            
+            throw new Error(error);
+
+        }
+    }
+
+    // async updateTopic(updateTopicDto: UpdateTopicDto, req: Request) {
+
+    //   try {
+
+    //     const username = req.user['username'];
+    //     const loggedInUser = await this.userRepository.findOne({ where: { username } })
+
+    //     const topicToBeUpdated = await this.topicRepository.findOne({ where: { name: updateTopicDto.name, userId: loggedInUser.userId } })
+
+    //     if (!topicToBeUpdated) {
+    //         throw new UnauthorizedException('Not authorized or topic not found.')
+    //     }
+        
+    //   } catch (error) {
+        
+    //     throw new Error(error); 
+
+    //   }
+
+    // }
 }

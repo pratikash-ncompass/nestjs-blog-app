@@ -11,10 +11,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const status = exception instanceof HttpException
       ? exception.getStatus()
       : HttpStatus.INTERNAL_SERVER_ERROR;
+      
     response.status(status).json({
       statusCode: status,
       data:{
-        message: exception.message
+        message: exception.response ? exception.response.message : exception.toString()
       }
     });
     
