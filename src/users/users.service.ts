@@ -36,11 +36,14 @@ export class UsersService {
     return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
+  // async isAdmin(userId: number): Promise<boolean> {
+  //   const user = await this.userRepository.findOne(userId);
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
+  //   if (!user) {
+  //     throw new NotFoundException(`User with id ${userId} not found`);
+  //   }
+
+  //   // Check if the user has admin role
+  //   return user.isAdmin === true;
+  // }
 }
