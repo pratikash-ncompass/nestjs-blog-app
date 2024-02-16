@@ -6,11 +6,12 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Blog } from 'src/entities/blog';
-import { Repository, createQueryBuilder } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { Topic } from 'src/entities/topic';
 import { Request } from 'express';
 import { User } from 'src/entities/user';
+import { UpdateBlogDto } from './dto/update-blog.dto';
 
 @Injectable()
 export class BlogService {
@@ -82,5 +83,41 @@ export class BlogService {
 
     await this.blogRepository.save(newBlog);
     return newBlog;
+  }
+
+  async update(id: string, updateBlogDto: UpdateBlogDto, req: Request) {
+    const loggedInUser = req.user['username'];
+    const loggedInUserDetails = await this.userRepository.findOne({
+      where: { username: loggedInUser },
+    });
+
+    const currentBlog = await this.blogRepository.findOne({
+      where: { blogId: id },
+    });
+    if (loggedInUserDetails.userId !== currentBlog.userId) {
+      throw new UnauthorizedException(
+        'You do not have access to edit this blog since you have not created it.',
+      );
+    }
+    
+    currentBlog.name = updateBlogDto.name
+      ? updateBlogDto.name
+      : currentBlog.name;
+    currentBlog.desc = updateBlogDto.desc
+      ? updateBlogDto.desc
+      : currentBlog.desc;
+    currentBlog.header = updateBlogDto.header
+      ? updateBlogDto.header
+      : currentBlog.header;
+    currentBlog.body = updateBlogDto.body
+      ? updateBlogDto.body
+      : currentBlog.body;
+    currentBlog.footer = updateBlogDto.footer
+      ? updateBlogDto.footer
+      : currentBlog.footer;
+
+    await this.blogRepository.save(currentBlog);
+
+    return currentBlog;
   }
 }
