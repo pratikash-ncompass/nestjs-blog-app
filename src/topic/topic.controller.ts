@@ -1,34 +1,41 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { TopicService } from './topic.service';
-import { CreateTopicDto } from './dto/create-topic.dto';
-import { UpdateTopicDto } from './dto/update-topic.dto';
+import { Body, Controller, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Request, Response } from "express";
+import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
+import { TopicService } from "./topic.service";
+import { CreateTopicDto } from "./dtos/create-topic.dto";
+import { CustomApiResponse } from "src/utils/send-response";
+import { UpdateTopicDto } from "./dtos/update-topic.dto";
+
 
 @Controller('topic')
 export class TopicController {
-  constructor(private readonly topicService: TopicService) {}
 
-  @Post()
-  create(@Body() createTopicDto: CreateTopicDto) {
-    return this.topicService.create(createTopicDto);
-  }
+    constructor(private topicService: TopicService) {};
 
-  @Get()
-  findAll() {
-    return this.topicService.findAll();
-  }
+    @UseGuards(JwtAuthGuard)
+    @Post() 
+    async createTopic(@Body() createTopicDto: CreateTopicDto, @Req() req: Request) {
+        try {
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.topicService.findOne(+id);
-  }
+            const createdTopic = await this.topicService.createTopic(createTopicDto, req);
+            console.log(createdTopic);
+            return new CustomApiResponse(200, 'Topic succesfully created.', createdTopic);
+            
+        } catch (error) {
+            throw new Error(error)
+        }
+    }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTopicDto: UpdateTopicDto) {
-    return this.topicService.update(+id, updateTopicDto);
-  }
+    // @UseGuards(JwtAuthGuard)
+    // @Post() 
+    // async updateTopic(@Body() updateTopicDto: UpdateTopicDto, @Req() req: Request, @Res() res: Response) {
+    //     try {
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.topicService.remove(+id);
-  }
+    //         const updatedTopic = await this.topicService.updateTopic(updateTopicDto, req);
+    //         return new CustomApiResponse(200, 'Topic succesfully created.', updatedTopic);
+            
+    //     } catch (error) {
+    //         throw new Error(error)
+    //     }
+    // }
 }

@@ -7,31 +7,31 @@ import { Topic } from './entities/topic';
 import { Blog } from './entities/blog';
 import { Editor } from './entities/editor';
 import { Viewer } from './entities/viewer';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { GlobalExceptionFilter } from './utils/error-handler';
 import { APP_FILTER } from '@nestjs/core';
 import { BlogModule } from './blogs/blog.module';
 
+import { TopicModule } from './topic/topic.module';
+import { ConfigDatabaseModule } from './config/config.module';
+import { databaseConfig } from './config/db.config';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT, 10),
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_DATABASE,
-      entities: [User, Topic, Blog, Editor, Viewer],
-      synchronize: true,
-    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigDatabaseModule],
+      inject: [ConfigService],
+      useFactory: databaseConfig,
+    }), 
     UsersModule,
     AuthModule,
-    BlogModule
+    BlogModule,
+    TopicModule
   ],
   controllers: [AppController],
   providers: [AppService, {provide:APP_FILTER, useClass: GlobalExceptionFilter}],

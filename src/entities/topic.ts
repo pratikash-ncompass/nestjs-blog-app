@@ -18,7 +18,7 @@ export class Topic {
     @Column({ unique: true })
     name: string;
 
-    @Column()
+    @Column({ nullable: true, type: 'text' })
     desc: string;
 
     // @ManyToMany(() => Editor, editor => editor.)
