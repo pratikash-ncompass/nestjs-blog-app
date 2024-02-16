@@ -13,7 +13,6 @@ import { User } from 'src/entities/user';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as md5 from 'md5';
-import { CustomError } from 'src/utils/custom-error';
 
 @Injectable()
 export class AuthService {
@@ -37,7 +36,6 @@ export class AuthService {
   async loginTokenGeneration(loginUserDto: LoginUserDto) {
     const payload = { username: loginUserDto.username };
     const accessToken = await this.jwtService.sign(payload);
-        
     return accessToken;
   }
 

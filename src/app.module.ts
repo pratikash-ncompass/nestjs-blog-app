@@ -10,6 +10,7 @@ import { Viewer } from './entities/viewer';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { TopicModule } from './topic/topic.module';
 
 @Module({
   imports: [
@@ -27,7 +28,8 @@ import { AuthModule } from './auth/auth.module';
     synchronize: true
   }),
     UsersModule,
-    AuthModule],
+    AuthModule,
+    TopicModule],
   controllers: [AppController],
   providers: [AppService,],
 })
