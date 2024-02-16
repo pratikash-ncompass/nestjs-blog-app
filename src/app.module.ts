@@ -17,6 +17,8 @@ import { BlogModule } from './blogs/blog.module';
 import { TopicModule } from './topic/topic.module';
 import { ConfigDatabaseModule } from './config/config.module';
 import { databaseConfig } from './config/db.config';
+import { EditorModule } from './editor/editor.module';
+import { ViewerModule } from './viewer/viewer.module';
 
 @Module({
   imports: [
@@ -31,7 +33,9 @@ import { databaseConfig } from './config/db.config';
     UsersModule,
     AuthModule,
     BlogModule,
-    TopicModule
+    TopicModule,
+    EditorModule,
+    ViewerModule
   ],
   controllers: [AppController],
   providers: [AppService, {provide:APP_FILTER, useClass: GlobalExceptionFilter}],

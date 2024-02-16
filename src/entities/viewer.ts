@@ -3,8 +3,8 @@ import { User } from "./user";
 
 @Entity() 
 export class Viewer {
-    @OneToOne(() => User, user => user.viewer)
-    user: User;
+    // @OneToOne(() => User, user => user.viewer)
+    // user: User;
 
     @PrimaryColumn('uuid')
     userId: string;
