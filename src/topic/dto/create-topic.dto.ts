@@ -1,3 +1,1 @@
-export class CreateTopicDto {
-    
-}
+export class CreateTopicDto {}

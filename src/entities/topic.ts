@@ -27,4 +27,6 @@ export class Topic {
     @JoinColumn()
     blog: Blog;
 
+    
+
 }
