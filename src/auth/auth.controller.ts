@@ -16,6 +16,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Request } from 'express';
 import { UpdateRoleDto } from './dtos/update-role.dto';
+import { AssignTopicDto } from './dtos/assign-topic.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -53,6 +54,24 @@ export class AuthController {
     const username = req.user['username'];
     
     const data = await this.authService.assignRoles(username, updateRoleDto);
+    return new CustomApiResponse(200, 'User Role Updated', data);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('user-roles')
+  async checkUserRoles(@Req() req: Request) {
+    const username = req.user['username'];
+
+    const data = await this.authService.checkUserRoles(username);
+    return new CustomApiResponse(200, 'User Roles Fetched', data);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('assing-topic') 
+  async assignTopic(@Body() assignTopicDto: AssignTopicDto, @Req() req: Request) {
+    const username = req.user['username'];
+    
+    const data = await this.authService.assignTopic(username, assignTopicDto);
     return new CustomApiResponse(200, 'User Role Updated', data);
   }
 }

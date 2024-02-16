@@ -8,13 +8,16 @@ import { ConfigModule } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { Topic } from 'src/entities/topic';
+import { Editor } from 'src/entities/editor';
+import { Viewer } from 'src/entities/viewer';
 
 @Module({
   imports :[
     ConfigModule.forRoot({
       isGlobal: true
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Topic, Editor, Viewer]),
     JwtModule.register({
       secret: process.env.SECRET_KEY,
       signOptions: { expiresIn: '5h' },
