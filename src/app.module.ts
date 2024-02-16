@@ -12,6 +12,8 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { GlobalExceptionFilter } from './utils/error-handler';
 import { APP_FILTER } from '@nestjs/core';
+import { BlogModule } from './blogs/blog.module';
+
 import { TopicModule } from './topic/topic.module';
 import { ConfigDatabaseModule } from './config/config.module';
 import { databaseConfig } from './config/db.config';
@@ -28,6 +30,7 @@ import { databaseConfig } from './config/db.config';
     }), 
     UsersModule,
     AuthModule,
+    BlogModule,
     TopicModule
   ],
   controllers: [AppController],
