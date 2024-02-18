@@ -149,4 +149,32 @@ export class TopicService {
         // }
     
       }
+
+      
+    async deassignTopic(username: string, deassignTopicDto: AssignTopicDto) {
+
+      const loggedInUser = await this.userRepository.findOne({ where : { username }});
+
+      if (!(loggedInUser.roleId === 1 || loggedInUser.roleId === 2)) {
+        throw new UnauthorizedException(`You don't have authorization to deassign topics`);
+      }
+
+      const userToDeassignTopicTo = await this.userRepository.findOne({  where: { username: deassignTopicDto.username } });
+      const topicToBeDeassigned = await this.topicRepository.findOne({ where: { name: deassignTopicDto.topicName } })
+
+      if(!(userToDeassignTopicTo || topicToBeDeassigned)) {
+        throw new NotFoundException(`User does not exist.`);
+
+      }
+
+      await this.permissonRepository.delete({ userId: userToDeassignTopicTo.userId, topicId: topicToBeDeassigned.topicId });
+
+      const responseData = {
+        username: loggedInUser.username,
+        topicName: topicToBeDeassigned.name
+      };
+
+      return responseData;
+  
+    }
 }
