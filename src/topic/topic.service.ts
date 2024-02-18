@@ -1,4 +1,4 @@
-import { Injectable, Req, UnauthorizedException } from "@nestjs/common";
+import { Injectable, NotFoundException, Req, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Request } from "express";
@@ -6,10 +6,8 @@ import { Request } from "express";
 import { Topic } from "src/entities/topic";
 import { User } from "src/entities/user";
 import { CreateTopicDto } from "./dtos/create-topic.dto";
-import { Editor } from "src/entities/editor";
 import { AssignTopicDto } from "./dtos/assign-topic.dto";
-import { Viewer } from "src/entities/viewer";
-
+import { PermissionTable } from "src/entities/permission";
 
 @Injectable() 
 export class TopicService {
@@ -17,8 +15,7 @@ export class TopicService {
     constructor(
         @InjectRepository(Topic) private topicRepository: Repository<Topic>,
         @InjectRepository(User) private userRepository: Repository<User>,
-        @InjectRepository(Editor) private editorRepository: Repository<Editor>,
-        @InjectRepository(Viewer) private viewerRepository: Repository<Viewer>,
+        @InjectRepository(PermissionTable) private permissonRepository: Repository<PermissionTable>,
     ) {};
 
     async createTopic(createTopicDto: CreateTopicDto, req: Request) {
@@ -40,8 +37,13 @@ export class TopicService {
             newTopic.desc = createTopicDto.desc;
 
             const savedTopic = await this.topicRepository.save(newTopic);
-            const { topicId, userId, ...topicDetails } = savedTopic;
 
+            // add the topic owner as editor and viewer of topic 
+            // await this.permissonRepository.create({ 
+            //   userId: loggedInUser.userId, user: loggedInUser, topicId: savedTopic.topicId, topic: savedTopic, isEditor: true, isViewer: true
+            //  })
+
+            const { topicId, userId, ...topicDetails } = savedTopic;
             return topicDetails;
             
         } catch (error) {
@@ -73,35 +75,78 @@ export class TopicService {
     // }
 
     async assignTopic(username: string, assignTopicDto: AssignTopicDto) {
+
         const loggedInUser = await this.userRepository.findOne({ where : { username }});
-        const fetchedUser = await this.userRepository.findOne({ where : { username: assignTopicDto.username }});
-        const userRole = loggedInUser.roleId;
-        const fetchedUserRoleId = fetchedUser.roleId;
-        console.log(fetchedUser);
-        
-    
-        if (!(userRole === 1 || userRole === 2)) {
-          throw new UnauthorizedException(`You don't have authrization to assign topics`);
+
+        if (!(loggedInUser.roleId === 1 || loggedInUser.roleId === 2)) {
+          throw new UnauthorizedException(`You don't have authorization to assign topics`);
         }
-    
-        let fetchedUserTopicId = await this.topicRepository.findOne({ where: {name: assignTopicDto.topicName} });
-        if (fetchedUserRoleId === 3) {
-          const newEditor = new Editor();
-          newEditor.topicId = fetchedUserTopicId.topicId;
-          newEditor.userId = fetchedUser.userId;
-          await this.editorRepository.save(newEditor);
-    
-          const newViewer = new Viewer();
-          newViewer.topicId = fetchedUserTopicId.topicId;
-          newViewer.userId = fetchedUser.userId;
-          await this.viewerRepository.save(newViewer);
+
+        const userToAssignTopicTo = await this.userRepository.findOne({ where : { username: assignTopicDto.username }});
+        let topicToBeAssigned = await this.topicRepository.findOne({ where: {name: assignTopicDto.topicName} });
+
+        if(!userToAssignTopicTo || !topicToBeAssigned) {
+          throw new NotFoundException('User or topic does not exist.')
         }
-        if (fetchedUserRoleId === 4) {
-          const newViewer = new Viewer();
-          newViewer.topicId = fetchedUserTopicId.topicId;
-          newViewer.userId = fetchedUser.userId;
-          await this.viewerRepository.save(newViewer);
+
+        const userToAssignTopicToRoleId = userToAssignTopicTo.roleId;
+        // return console.log(userToAssignTopicToRoleId);
+
+        let newPermission;
+        if(userToAssignTopicToRoleId === 4) {
+          newPermission = {
+            user: userToAssignTopicTo,
+            topic: topicToBeAssigned,
+            userId: userToAssignTopicTo.userId,
+            topicId: topicToBeAssigned.topicId,
+            isEditor: false,
+            isViewer: true
+          }
+        } 
+        else if(userToAssignTopicToRoleId == 3) {
+          newPermission = {
+            user: userToAssignTopicTo,
+            topic: topicToBeAssigned,
+            userId: userToAssignTopicTo.userId,
+            topicId: topicToBeAssigned.topicId,
+            isEditor: true,
+            isViewer: true
+          }
         }
+        else {
+          throw new UnauthorizedException('Topic cannot be assigned to this')
+        }
+
+        const savedPermission = await this.permissonRepository.save(newPermission);
+
+        const { userId: assignedPermissionToUserId1, topicId: topicId1,  ...savedPermissionDetails } = savedPermission;
+
+        const { userId: assignedPermissionToUserId12, password, ...savedPermissionDetailsForUser } = savedPermissionDetails.user;
+
+        const { userId: topicUserId, topicId: topicId2, ...savedPermissionDetailsForTopic } = savedPermissionDetails.topic;
+
+        savedPermissionDetails.user = savedPermissionDetailsForUser;
+        savedPermissionDetails.topic = savedPermissionDetailsForTopic;
+
+        return savedPermissionDetails;
+    
+        // if (userToAssignTopicToRoleId === 3) {
+        //   const newEditor = new Editor();
+        //   newEditor.topicId = topicToBeAssigned.topicId;
+        //   newEditor.userId = userToAssignTopicTo.userId;
+        //   await this.editorRepository.save(newEditor);
+    
+        //   const newViewer = new Viewer();
+        //   newViewer.topicId = topicToBeAssigned.topicId;
+        //   newViewer.userId = userToAssignTopicTo.userId;
+        //   await this.viewerRepository.save(newViewer);
+        // }
+        // if (userToAssignTopicToRoleId === 4) {
+        //   const newViewer = new Viewer();
+        //   newViewer.topicId = topicToBeAssigned.topicId;
+        //   newViewer.userId = userToAssignTopicTo.userId;
+        //   await this.viewerRepository.save(newViewer);
+        // }
     
       }
 }

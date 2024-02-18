@@ -1,4 +1,5 @@
-import { BeforeInsert, Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn} from "typeorm";
+import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn} from "typeorm";
+import { Role } from "./role";
 
 @Entity({ name: 'users' })
 export class User {
@@ -22,6 +23,9 @@ export class User {
 
   @Column({ default: 4 })
   roleId: number;
+
+  // @ManyToOne(() => Role, role => role.roleId)
+  // role: Role;
 
   // @OneToOne(() => Editor, (editor) => editor.user)
   // @JoinColumn()

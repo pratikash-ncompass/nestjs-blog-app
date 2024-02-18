@@ -33,7 +33,7 @@ export class TopicController {
       const username = req.user['username'];
       
       const data = await this.topicService.assignTopic(username, assignTopicDto);
-      return new CustomApiResponse(200, 'User Role Updated', data);
+      return new CustomApiResponse(200, 'Topic succesfully assigned.', data);
     }
 
     // @UseGuards(JwtAuthGuard)

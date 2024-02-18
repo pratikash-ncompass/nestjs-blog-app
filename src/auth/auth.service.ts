@@ -7,16 +7,12 @@ import * as md5 from 'md5';
 import { User } from 'src/entities/user';
 import { LoginUserDto } from './dtos/login-user.dto';
 import { Topic } from 'src/entities/topic';
-import { Editor } from 'src/entities/editor';
-import { Viewer } from 'src/entities/viewer';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Topic) private topicRepository: Repository<Topic>,
-    @InjectRepository(Editor) private editorRepository: Repository<Editor>,
-    @InjectRepository(Viewer) private viewerRepository: Repository<Viewer>,
     private jwtService: JwtService
     ) {};
 

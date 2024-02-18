@@ -1,7 +1,5 @@
 import {
   Injectable,
-  NotFoundException,
-  Req,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,6 +11,8 @@ import { Topic } from 'src/entities/topic';
 import { User } from 'src/entities/user';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
+import { PermissionTable } from 'src/entities/permission';
+import { LoginUserDto } from 'src/auth/dtos/login-user.dto';
 
 @Injectable()
 export class BlogService {
@@ -20,7 +20,44 @@ export class BlogService {
     @InjectRepository(Blog) private blogRepository: Repository<Blog>,
     @InjectRepository(Topic) private topicRepository: Repository<Topic>,
     @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(PermissionTable) private permissionRepository: Repository<PermissionTable>,
   ) {}
+
+  async getBlogsOfATopic(topicId: string, req: Request) {
+
+    const username = req.user['username'];
+    const loggedInUser = await this.userRepository.findOne({ where: { username } });
+
+    const loggedInUserPermittedTopics = await this.permissionRepository.find({ 
+      where: { userId: loggedInUser.userId, isViewer: true },
+      select: [ 'topicId' ]
+    });
+
+    const isLoggedInUserPermittedToViewBlogsOnGivenTopic = loggedInUserPermittedTopics.map(topic => topic.topicId).includes(topicId)
+
+    if(!isLoggedInUserPermittedToViewBlogsOnGivenTopic) {
+      throw new UnauthorizedException('Not permitted to view blogs on this topic.')
+    }
+
+    const fetchedBlogs = this.blogRepository.find({ where: { topicId }, select: [
+      'name', 'desc', 'header', 'body', 'footer', 'createdAt', 'updatedAt'
+    ] });
+    
+    return fetchedBlogs;
+
+  }
+
+  async getLoggedInUserBlogs(req: Request) {
+
+    const username = req.user['username'];
+    const loggedInUser = await this.userRepository.findOne({ where: { username } });
+    const fetchedBlogs = await this.blogRepository.find({ where: { userId: loggedInUser.userId}, select: [
+      'name', 'desc', 'header', 'body', 'footer', 'createdAt', 'updatedAt'
+    ] })
+
+    return fetchedBlogs;
+
+  }
 
   async create(createBlogDto: CreateBlogDto, req: Request) {
     const loggedInUser = req.user['username'];
@@ -31,88 +68,131 @@ export class BlogService {
     // console.log(loggedInUserDetails.userId);
 
     if (loggedInUserDetails.roleId === 4) {
-      throw new UnauthorizedException(
-        'You do not have permission to add a blog',
-      );
+      throw new UnauthorizedException('You do not have permission to add a blog');
     }
 
-    const loggedInUserTopics = await this.topicRepository.find({
-      where: { userId: loggedInUser.userId },
-      select: ['name', 'topicId'],
+    const topicToAddBlogTo = await this.topicRepository.findOne({ where: { name: createBlogDto.topicName }});
+
+    if (!topicToAddBlogTo) {
+      throw new UnauthorizedException('Topic does not exist.');
+    }
+
+    const loggedInUserPermittedTopics =  await this.permissionRepository.find({ 
+      where: { userId: loggedInUserDetails.userId, isEditor: true },
+      select: [ 'topicId' ]
     });
 
-    const permittedTopics = [];
-    for (let i = 0; i < loggedInUserTopics.length; i++) {
-      permittedTopics.push(loggedInUserTopics[i].name.toLowerCase());
+    const isLoggedInUserPermittedToCreateBlogsOnGivenTopic = loggedInUserPermittedTopics.map(topic => topic.topicId).includes(topicToAddBlogTo.topicId);
+    if(!isLoggedInUserPermittedToCreateBlogsOnGivenTopic) {
+      throw new UnauthorizedException('Not permitted to create blogs on this topic.')
     }
-    // console.log(permittedTopics);
-
-    const isPermitted = permittedTopics.includes(
-      createBlogDto.topicName.toLowerCase(),
-    );
-    // console.log(isPermitted)
-
-    if (!isPermitted) {
-      throw new UnauthorizedException(
-        'You do not have permission to add a blog in this topic',
-      );
-    }
-
-    const topicNewBlog = await this.topicRepository.find({
-      where: { name: createBlogDto.topicName },
-    });
-
-    const fetchedTopic = new Topic();
-    Object.assign(fetchedTopic, topicNewBlog[0]);
-    console.log(fetchedTopic.name);
-
-    const topicIdNew = topicNewBlog[0].topicId;
 
     const newBlog = this.blogRepository.create({
-      ...createBlogDto,
-      topicId: topicIdNew,
-      userId: loggedInUserDetails.userId,
+      ...createBlogDto, topicId: topicToAddBlogTo.topicId, userId: loggedInUserDetails.userId, topic: topicToAddBlogTo
     });
-    newBlog.topic = fetchedTopic;
-    let savedBlog = await this.blogRepository.save(newBlog);
-    const { blogId, topicId, userId, ...createdBlog } = savedBlog;
 
-    return createdBlog;
+    const savedBlog = await this.blogRepository.save(newBlog, {  });
+
+    const { blogId: blogId1, topicId: topicId1, userId: userId1, ...savedBlogDetails } = savedBlog;
+    const { blogId: blogId2, topicId: topicId2, userId: userId2, ...savedBlogDetailsWithoutTopic } = savedBlog;
+
+    const { topicId: topicId3, userId: userId3, ...savedBlogDetailsForTopic } = savedBlogDetails.topic
+
+    const topic = savedBlogDetailsForTopic;
+
+    const savedBlogResponse = {
+      blog: {
+        ...savedBlogDetailsWithoutTopic,
+        topic
+      },
+    }
+    
+    return savedBlogResponse;
+
+    // const loggedInUserTopics = await this.topicRepository.find({
+    //   where: { userId: loggedInUser.userId },
+    //   select: ['name', 'topicId'],
+    // });
+
+    // const permittedTopics = [];
+    // for (let i = 0; i < loggedInUserTopics.length; i++) {
+    //   permittedTopics.push(loggedInUserTopics[i].name.toLowerCase());
+    // }
+    // // console.log(permittedTopics);
+
+    // const isPermitted = permittedTopics.includes(
+    //   createBlogDto.topicName.toLowerCase(),
+    // );
+    // // console.log(isPermitted)
+
+    // if (!isPermitted) {
+    //   throw new UnauthorizedException(
+    //     'You do not have permission to add a blog in this topic',
+    //   );
+    // }
+    // const topicNewBlog = await this.topicRepository.find({
+    //   where: { name: createBlogDto.topicName },
+    // });
+
+    // const fetchedTopic = new Topic();
+    // Object.assign(fetchedTopic, topicNewBlog[0]);
+    // console.log(fetchedTopic.name);
+
+    // const topicIdNew = topicNewBlog[0].topicId;
+
+    // const newBlog = this.blogRepository.create({
+    //   ...createBlogDto,
+    //   topicId: topicIdNew,
+    //   userId: loggedInUserDetails.userId,
+    // });
+    // newBlog.topic = fetchedTopic;
+    // let savedBlog = await this.blogRepository.save(newBlog);
+    // const { blogId, topicId, userId, ...createdBlog } = savedBlog;
+
+    // return createdBlog;
   }
 
   async update(id: string, updateBlogDto: UpdateBlogDto, req: Request) {
+
     const loggedInUser = req.user['username'];
     const loggedInUserDetails = await this.userRepository.findOne({
       where: { username: loggedInUser },
     });
 
-    const currentBlog = await this.blogRepository.findOne({
+    const blogToBeUpdated = await this.blogRepository.findOne({
       where: { blogId: id },
     });
-    if (loggedInUserDetails.userId !== currentBlog.userId) {
+
+    if (loggedInUserDetails.userId !== blogToBeUpdated.userId) {
       throw new UnauthorizedException(
         'You do not have access to edit this blog since you have not created it.',
       );
     }
 
-    currentBlog.name = updateBlogDto.name
-      ? updateBlogDto.name
-      : currentBlog.name;
-    currentBlog.desc = updateBlogDto.desc
-      ? updateBlogDto.desc
-      : currentBlog.desc;
-    currentBlog.header = updateBlogDto.header
-      ? updateBlogDto.header
-      : currentBlog.header;
-    currentBlog.body = updateBlogDto.body
-      ? updateBlogDto.body
-      : currentBlog.body;
-    currentBlog.footer = updateBlogDto.footer
-      ? updateBlogDto.footer
-      : currentBlog.footer;
+    // blogToBeUpdated.name = updateBlogDto.name
+    //   ? updateBlogDto.name
+    //   : blogToBeUpdated.name;
+    // blogToBeUpdated.desc = updateBlogDto.desc
+    //   ? updateBlogDto.desc
+    //   : blogToBeUpdated.desc;
+    // blogToBeUpdated.header = updateBlogDto.header
+    //   ? updateBlogDto.header
+    //   : blogToBeUpdated.header;
+    // blogToBeUpdated.body = updateBlogDto.body
+    //   ? updateBlogDto.body
+    //   : blogToBeUpdated.body;
+    // blogToBeUpdated.footer = updateBlogDto.footer
+    //   ? updateBlogDto.footer
+    //   : blogToBeUpdated.footer;
 
-    await this.blogRepository.save(currentBlog);
+    Object.keys(updateBlogDto).forEach((key) => {
+      blogToBeUpdated[key] = updateBlogDto[key];
+    })
 
-    return currentBlog;
+    const updatedBlog = await this.blogRepository.save(blogToBeUpdated);
+    
+    const { blogId, topicId, ...updatedBlogDetails } = updatedBlog;
+
+    return updatedBlogDetails;
   }
 }

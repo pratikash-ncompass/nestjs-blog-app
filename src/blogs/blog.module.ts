@@ -5,9 +5,10 @@ import { User } from 'src/entities/user';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Blog } from 'src/entities/blog';
 import { Topic } from 'src/entities/topic';
+import { PermissionTable } from 'src/entities/permission';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Blog, Topic, User])],
+  imports: [TypeOrmModule.forFeature([Blog, Topic, User, PermissionTable])],
   controllers: [BlogController],
   providers: [BlogService],
 })
