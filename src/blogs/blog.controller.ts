@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 
 import { BlogService } from './blog.service';
@@ -43,8 +43,18 @@ export class BlogController {
   @Put(':id')
   async update(@Param('id') id: string,  @Body() updateBlogDto: UpdateBlogDto, @Req() req: Request) {
 
-      const updatedBlog = await this.blogService.update(id, updateBlogDto, req);
-      return new CustomApiResponse(200, 'Blog updated succesfully', updatedBlog);
+    const updatedBlog = await this.blogService.update(id, updateBlogDto, req);
+    return new CustomApiResponse(200, 'Blog updated succesfully', updatedBlog);
       
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async delete(@Param('id') id: string, @Req() req: Request) {
+
+    const deletedBlog = await this.blogService.delete(id, req);
+    return new CustomApiResponse(200, 'Blog deleted succesfully', deletedBlog);
+
+
   }
 }

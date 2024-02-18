@@ -1,5 +1,6 @@
 import {
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,7 +13,6 @@ import { User } from 'src/entities/user';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 import { PermissionTable } from 'src/entities/permission';
-import { LoginUserDto } from 'src/auth/dtos/login-user.dto';
 
 @Injectable()
 export class BlogService {
@@ -194,5 +194,38 @@ export class BlogService {
     const { blogId, topicId, ...updatedBlogDetails } = updatedBlog;
 
     return updatedBlogDetails;
+  }
+
+  async delete(id: string, req: Request) {
+
+    const username = req.user['username'];
+    const loggedInUser = await this.userRepository.findOne({ where: { username } });
+    const roleOfLoggedInUser = loggedInUser.roleId;
+
+    if(roleOfLoggedInUser === 4) {
+      throw new UnauthorizedException('You are not authorized to delete blogs.');
+    }
+
+    const blogToBeDeleted = await this.blogRepository.findOne({ where: { blogId: id } });
+
+    if(!blogToBeDeleted) {
+      throw new NotFoundException('Blog does not exist.');
+    }
+
+    const loggedInUserCreatedBlogs = await this.blogRepository.find({ where: { userId: loggedInUser.userId } });
+
+    const isLoggedInUserOwnerOfBlogToBeDeleted = loggedInUserCreatedBlogs.map(blog => blog.blogId).includes(blogToBeDeleted.blogId);
+    
+    if(!(isLoggedInUserOwnerOfBlogToBeDeleted || roleOfLoggedInUser === 2 || roleOfLoggedInUser === 1)) {
+      throw new UnauthorizedException('You are not authorized to delete this blog.');
+    }
+
+    const deletedBlog = await this.blogRepository.delete({blogId: id});
+
+    
+    const { blogId: blogId1, topicId: topicId1, userId: userId1, ...deletedBlogDetails } = blogToBeDeleted;
+
+    return deletedBlogDetails;
+
   }
 }
