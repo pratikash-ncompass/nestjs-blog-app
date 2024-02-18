@@ -38,10 +38,14 @@ export class TopicService {
 
             const savedTopic = await this.topicRepository.save(newTopic);
 
-            // add the topic owner as editor and viewer of topic 
-            // await this.permissonRepository.create({ 
-            //   userId: loggedInUser.userId, user: loggedInUser, topicId: savedTopic.topicId, topic: savedTopic, isEditor: true, isViewer: true
-            //  })
+            const newPermission = new PermissionTable();
+            newPermission.isEditor = true;
+            newPermission.isViewer = true;
+            newPermission.userId = newTopic.userId;
+            newPermission.topicId = newTopic.topicId;
+            newPermission.user = loggedInUser;
+            newPermission.topic = savedTopic;
+            await this.permissonRepository.save(newPermission);
 
             const { topicId, userId, ...topicDetails } = savedTopic;
             return topicDetails;
@@ -103,7 +107,7 @@ export class TopicService {
             isViewer: true
           }
         } 
-        else if(userToAssignTopicToRoleId == 3) {
+        else if(userToAssignTopicToRoleId === 3) {
           newPermission = {
             user: userToAssignTopicTo,
             topic: topicToBeAssigned,
@@ -125,7 +129,8 @@ export class TopicService {
 
         const { userId: topicUserId, topicId: topicId2, ...savedPermissionDetailsForTopic } = savedPermissionDetails.topic;
 
-        savedPermissionDetails.user = savedPermissionDetailsForUser;
+        const {roleId, ...savedDetails} = savedPermissionDetailsForUser;
+        savedPermissionDetails.user = savedDetails;
         savedPermissionDetails.topic = savedPermissionDetailsForTopic;
 
         return savedPermissionDetails;

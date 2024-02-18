@@ -21,28 +21,40 @@ export class BlogService {
     @InjectRepository(Topic) private topicRepository: Repository<Topic>,
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(PermissionTable) private permissionRepository: Repository<PermissionTable>,
-  ) {}
+  ) { }
+
+  async findTopicId(topicName: string) {
+    const topicId = await this.topicRepository.findOne({ where: { name: topicName } });
+    return topicId.topicId;
+  }
+
+  async findBlogId(blogName: string) {
+    const blogId = await this.blogRepository.findOne({ where: { name: blogName } });
+    return blogId.blogId;
+  }
 
   async getBlogsOfATopic(topicId: string, req: Request) {
 
     const username = req.user['username'];
     const loggedInUser = await this.userRepository.findOne({ where: { username } });
 
-    const loggedInUserPermittedTopics = await this.permissionRepository.find({ 
+    const loggedInUserPermittedTopics = await this.permissionRepository.find({
       where: { userId: loggedInUser.userId, isViewer: true },
-      select: [ 'topicId' ]
+      select: ['topicId']
     });
 
     const isLoggedInUserPermittedToViewBlogsOnGivenTopic = loggedInUserPermittedTopics.map(topic => topic.topicId).includes(topicId)
 
-    if(!isLoggedInUserPermittedToViewBlogsOnGivenTopic) {
+    if (!isLoggedInUserPermittedToViewBlogsOnGivenTopic) {
       throw new UnauthorizedException('Not permitted to view blogs on this topic.')
     }
 
-    const fetchedBlogs = this.blogRepository.find({ where: { topicId }, select: [
-      'name', 'desc', 'header', 'body', 'footer', 'createdAt', 'updatedAt'
-    ] });
-    
+    const fetchedBlogs = this.blogRepository.find({
+      where: { topicId }, select: [
+        'name', 'desc', 'header', 'body', 'footer', 'createdAt', 'updatedAt'
+      ]
+    });
+
     return fetchedBlogs;
 
   }
@@ -51,9 +63,11 @@ export class BlogService {
 
     const username = req.user['username'];
     const loggedInUser = await this.userRepository.findOne({ where: { username } });
-    const fetchedBlogs = await this.blogRepository.find({ where: { userId: loggedInUser.userId}, select: [
-      'name', 'desc', 'header', 'body', 'footer', 'createdAt', 'updatedAt'
-    ] })
+    const fetchedBlogs = await this.blogRepository.find({
+      where: { userId: loggedInUser.userId }, select: [
+        'name', 'desc', 'header', 'body', 'footer', 'createdAt', 'updatedAt'
+      ]
+    })
 
     return fetchedBlogs;
 
@@ -71,19 +85,19 @@ export class BlogService {
       throw new UnauthorizedException('You do not have permission to add a blog');
     }
 
-    const topicToAddBlogTo = await this.topicRepository.findOne({ where: { name: createBlogDto.topicName }});
+    const topicToAddBlogTo = await this.topicRepository.findOne({ where: { name: createBlogDto.topicName } });
 
     if (!topicToAddBlogTo) {
       throw new UnauthorizedException('Topic does not exist.');
     }
 
-    const loggedInUserPermittedTopics =  await this.permissionRepository.find({ 
+    const loggedInUserPermittedTopics = await this.permissionRepository.find({
       where: { userId: loggedInUserDetails.userId, isEditor: true },
-      select: [ 'topicId' ]
+      select: ['topicId']
     });
 
     const isLoggedInUserPermittedToCreateBlogsOnGivenTopic = loggedInUserPermittedTopics.map(topic => topic.topicId).includes(topicToAddBlogTo.topicId);
-    if(!isLoggedInUserPermittedToCreateBlogsOnGivenTopic) {
+    if (!isLoggedInUserPermittedToCreateBlogsOnGivenTopic) {
       throw new UnauthorizedException('Not permitted to create blogs on this topic.')
     }
 
@@ -91,7 +105,7 @@ export class BlogService {
       ...createBlogDto, topicId: topicToAddBlogTo.topicId, userId: loggedInUserDetails.userId, topic: topicToAddBlogTo
     });
 
-    const savedBlog = await this.blogRepository.save(newBlog, {  });
+    const savedBlog = await this.blogRepository.save(newBlog, {});
 
     const { blogId: blogId1, topicId: topicId1, userId: userId1, ...savedBlogDetails } = savedBlog;
     const { blogId: blogId2, topicId: topicId2, userId: userId2, ...savedBlogDetailsWithoutTopic } = savedBlog;
@@ -106,7 +120,7 @@ export class BlogService {
         topic
       },
     }
-    
+
     return savedBlogResponse;
 
     // const loggedInUserTopics = await this.topicRepository.find({
@@ -190,42 +204,50 @@ export class BlogService {
     })
 
     const updatedBlog = await this.blogRepository.save(blogToBeUpdated);
-    
+
     const { blogId, topicId, ...updatedBlogDetails } = updatedBlog;
 
     return updatedBlogDetails;
   }
 
   async delete(id: string, req: Request) {
+    try {
+      const username = req.user['username'];
+      const loggedInUser = await this.userRepository.findOne({ where: { username } });
 
-    const username = req.user['username'];
-    const loggedInUser = await this.userRepository.findOne({ where: { username } });
-    const roleOfLoggedInUser = loggedInUser.roleId;
+      const roleOfLoggedInUser = loggedInUser.roleId;
 
-    if(roleOfLoggedInUser === 4) {
-      throw new UnauthorizedException('You are not authorized to delete blogs.');
+      if (loggedInUser.roleId === 4) {
+        throw new UnauthorizedException('You are not authorized to delete blogs.');
+      }
+
+      const blogToBeDeleted = await this.blogRepository.findOne({ where: { blogId: id } });      
+
+      if (!blogToBeDeleted) {
+        throw new NotFoundException('Blog does not exist.');
+      }
+
+      const loggedInUserCreatedBlogs = await this.blogRepository.find({ where: { userId: loggedInUser.userId } });
+
+      if (!loggedInUser) {
+        throw new UnauthorizedException('U have no created blogs');
+      }
+      
+
+      const isLoggedInUserOwnerOfBlogToBeDeleted = loggedInUserCreatedBlogs.map(blog => blog.blogId).includes(blogToBeDeleted.blogId);
+
+      if (!(isLoggedInUserOwnerOfBlogToBeDeleted || roleOfLoggedInUser === 2 || roleOfLoggedInUser === 1)) {
+        throw new UnauthorizedException('You are not authorized to delete this blog.');
+      }
+
+      await this.blogRepository.delete({ blogId: id });
+
+      const { blogId: blogId1, topicId: topicId1, userId: userId1, ...deletedBlogDetails } = blogToBeDeleted;
+
+      return deletedBlogDetails;
+
+    } catch (error) {
+      throw new Error(error);
     }
-
-    const blogToBeDeleted = await this.blogRepository.findOne({ where: { blogId: id } });
-
-    if(!blogToBeDeleted) {
-      throw new NotFoundException('Blog does not exist.');
-    }
-
-    const loggedInUserCreatedBlogs = await this.blogRepository.find({ where: { userId: loggedInUser.userId } });
-
-    const isLoggedInUserOwnerOfBlogToBeDeleted = loggedInUserCreatedBlogs.map(blog => blog.blogId).includes(blogToBeDeleted.blogId);
-    
-    if(!(isLoggedInUserOwnerOfBlogToBeDeleted || roleOfLoggedInUser === 2 || roleOfLoggedInUser === 1)) {
-      throw new UnauthorizedException('You are not authorized to delete this blog.');
-    }
-
-    const deletedBlog = await this.blogRepository.delete({blogId: id});
-
-    
-    const { blogId: blogId1, topicId: topicId1, userId: userId1, ...deletedBlogDetails } = blogToBeDeleted;
-
-    return deletedBlogDetails;
-
   }
 }

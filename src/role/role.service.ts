@@ -3,28 +3,32 @@ import { UpdateRoleDto } from "./dtos/update-role.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "src/entities/user";
 import { Repository } from "typeorm";
+import { Role } from "src/entities/role";
 
 
 @Injectable()
 export class RoleService {
 
-    constructor(@InjectRepository(User) private userRepository: Repository<User>) {};
+    constructor(
+      @InjectRepository(User) private userRepository: Repository<User>,
+      @InjectRepository(Role) private roleRepository: Repository<Role>) {};
 
     async assignRoles(username: string, updateRoleDto: UpdateRoleDto) {
         try {
-          const superadminAssignableRoles = [2, 3, 4];
-          const adminAssignableRoles = [3, 4];
+          const superadminAssignableRoles = ['admin', 'editor', 'viewer'];
+          const adminAssignableRoles = ['editor', 'viewer'];
     
           const fetchedUser = await this.userRepository.findOne({ where : { username: updateRoleDto.username }});
           const changingRoleUser = await this.userRepository.findOne({ where : { username }});
-          const toBeChangedRole = updateRoleDto.roleId;   
+          const toBeChangedRole = updateRoleDto.roleName;   
+          const fetchedUserRoleName = await this.roleRepository.findOne({ where : { roleId: fetchedUser.roleId } });
     
           if (!(changingRoleUser.roleId === 1 || changingRoleUser.roleId === 2)) {
             throw new UnauthorizedException(`You don't have the authority to assign roles`)
           }
           
           if (changingRoleUser.userId === fetchedUser.userId) {
-            throw new UnauthorizedException('Cannot Change Your Own Role');
+            throw new UnauthorizedException('You Cannot Change Your Own Role');
           }
     
           if (!(superadminAssignableRoles.includes(toBeChangedRole))) {
@@ -34,9 +38,13 @@ export class RoleService {
           if (!(changingRoleUser.roleId === 1 && superadminAssignableRoles.includes(toBeChangedRole)) && !(changingRoleUser.roleId === 2 && adminAssignableRoles.includes(toBeChangedRole))) {
             throw new UnauthorizedException('You are not Authorized to change the particular role');
           }
-          fetchedUser.roleId = updateRoleDto.roleId;
+          const fetchedUserRoleId = await this.roleRepository.findOne({ where : { roleName: updateRoleDto.roleName }})
+          fetchedUser.roleId = fetchedUserRoleId.roleId;
       
           await this.userRepository.save(fetchedUser);
+          return {
+            previousRole: fetchedUserRoleName.roleName,
+            newRole: fetchedUserRoleId.roleName};
         } catch (error) {
           throw new HttpException(error, 400);
         }

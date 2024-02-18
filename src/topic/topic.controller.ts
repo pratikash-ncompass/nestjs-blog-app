@@ -19,8 +19,7 @@ export class TopicController {
         try {
 
             const createdTopic = await this.topicService.createTopic(createTopicDto, req);
-            console.log(createdTopic);
-            return new CustomApiResponse(200, 'Topic succesfully created.', createdTopic);
+            return new CustomApiResponse(200, 'Topic Created Sucessfully', createdTopic);
             
         } catch (error) {
             throw new Error(error)
@@ -33,7 +32,7 @@ export class TopicController {
       const username = req.user['username'];
       
       const data = await this.topicService.assignTopic(username, assignTopicDto);
-      return new CustomApiResponse(200, 'Topic succesfully assigned.', data);
+      return new CustomApiResponse(200, 'Topic Assigned Successfully', data);
     }
 
     // @UseGuards(JwtAuthGuard)

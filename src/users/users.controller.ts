@@ -27,17 +27,17 @@ export class UsersController {
     return new CustomApiResponse(200, 'User created succesfully', createdUser);
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const user = await this.usersService.findUserById(id);
-    return new CustomApiResponse(200, 'User fetched succesfully', user);
-  }
+  // @Get(':id')
+  // async findOne(@Param('id') id: string) {
+  //   const user = await this.usersService.findUserById(id);
+  //   return new CustomApiResponse(200, 'User fetched succesfully', user);
+  // }
 
   @UseGuards(JwtAuthGuard)
   @Get('details')
   async getDetails(@Req() req: Request) {
     const username = req.user['username'];
-        
+    
     const data = await this.usersService.userDetails(username);
     return new CustomApiResponse(200, 'User Details Fetched', data);
   }
