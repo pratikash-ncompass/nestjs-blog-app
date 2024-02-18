@@ -1,10 +1,10 @@
-import { Column, Entity, OneToMany, PrimaryColumn} from "typeorm";
+import { Column, Entity, OneToMany, PrimaryColumn, PrimaryGeneratedColumn} from "typeorm";
 
 @Entity() 
 export class Role {
-    @PrimaryColumn()
+    @PrimaryGeneratedColumn()
     roleId: number;
 
-    @Column()
-    roleName: string;
+    @Column({ unique: true })
+    roleName: string
 }

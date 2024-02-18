@@ -3,9 +3,9 @@ import { ConfigService } from '@nestjs/config';
 
 import { User } from 'src/entities/user';
 import { Topic } from 'src/entities/topic';
-import { Editor } from 'src/entities/editor';
-import { Viewer } from 'src/entities/viewer';
 import { Blog } from 'src/entities/blog';
+import { PermissionTable } from 'src/entities/permission';
+import { Role } from 'src/entities/role';
 
 export const databaseConfig = async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({
   type: 'mysql',
@@ -13,7 +13,7 @@ export const databaseConfig = async (configService: ConfigService): Promise<Type
   port: configService.get<number>('DB_PORT'),
   username: configService.get<string>('DB_USERNAME'),
   password: configService.get<string>('DB_PASSWORD'),
-  database: configService.get<string>('DB_NAME'),
-  entities: [User, Topic, Editor, Viewer, Blog],
+  database: configService.get<string>('DB_DATABASE'),
+  entities: [User, Topic, Blog, PermissionTable, Role],
   synchronize: true, 
 });

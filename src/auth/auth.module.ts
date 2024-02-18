@@ -10,16 +10,13 @@ import { User } from 'src/entities/user';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { Topic } from 'src/entities/topic';
-import { Editor } from 'src/entities/editor';
-import { Viewer } from 'src/entities/viewer';
-import { Role } from 'src/entities/role';
 
 @Module({
   imports :[
     ConfigModule.forRoot({
       isGlobal: true
     }),
-    TypeOrmModule.forFeature([User, Topic, Editor, Viewer, Role]),
+    TypeOrmModule.forFeature([User, Topic]),
     JwtModule.register({
       secret: process.env.SECRET_KEY,
       signOptions: { expiresIn: process.env.EXPIRES_IN },

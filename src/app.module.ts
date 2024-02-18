@@ -12,8 +12,6 @@ import { BlogModule } from './blogs/blog.module';
 import { TopicModule } from './topic/topic.module';
 import { ConfigDatabaseModule } from './config/config.module';
 import { databaseConfig } from './config/db.config';
-import { EditorModule } from './editor/editor.module';
-import { ViewerModule } from './viewer/viewer.module';
 import { RoleModule } from './role/role.module';
 
 @Module({
@@ -30,8 +28,6 @@ import { RoleModule } from './role/role.module';
     AuthModule,
     BlogModule,
     TopicModule,
-    EditorModule,
-    ViewerModule,
     RoleModule,
   ],
   controllers: [AppController],

@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Patch, Post, Req, Res, UseGuards } from "@nestjs/common";
 import { Request, Response } from "express";
 
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
@@ -19,8 +19,7 @@ export class TopicController {
         try {
 
             const createdTopic = await this.topicService.createTopic(createTopicDto, req);
-            console.log(createdTopic);
-            return new CustomApiResponse(200, 'Topic succesfully created.', createdTopic);
+            return new CustomApiResponse(200, 'Topic Created Sucessfully', createdTopic);
             
         } catch (error) {
             throw new Error(error)
@@ -33,7 +32,7 @@ export class TopicController {
       const username = req.user['username'];
       
       const data = await this.topicService.assignTopic(username, assignTopicDto);
-      return new CustomApiResponse(200, 'User Role Updated', data);
+      return new CustomApiResponse(200, 'Topic Assigned Successfully', data);
     }
 
     // @UseGuards(JwtAuthGuard)
@@ -48,4 +47,13 @@ export class TopicController {
     //         throw new Error(error)
     //     }
     // }
+
+    @UseGuards(JwtAuthGuard)
+    @Patch('deassign-topic')
+    async deassignTopic(@Body() deassignTopicDto: AssignTopicDto, @Req() req: Request) {
+        const username = req.user['username'];
+      
+        const data = await this.topicService.deassignTopic(username, deassignTopicDto);
+        return new CustomApiResponse(200, 'Topic succesfully deassigned.', data);
+    }
 }
