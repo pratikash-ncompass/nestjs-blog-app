@@ -1,8 +1,9 @@
 import { BadRequestException, HttpException, Injectable, UnauthorizedException } from "@nestjs/common";
-import { UpdateRoleDto } from "./dtos/update-role.dto";
-import { InjectRepository } from "@nestjs/typeorm";
-import { User } from "src/entities/user";
 import { Repository } from "typeorm";
+import { InjectRepository } from "@nestjs/typeorm";
+
+import { UpdateRoleDto } from "./dtos/update-role.dto";
+import { User } from "src/entities/user";
 import { Role } from "src/entities/role";
 
 
@@ -18,7 +19,7 @@ export class RoleService {
           const superadminAssignableRoles = ['admin', 'editor', 'viewer'];
           const adminAssignableRoles = ['editor', 'viewer'];
     
-          const fetchedUser = await this.userRepository.findOne({ where : { username: updateRoleDto.username }});
+          const fetchedUser = await this.userRepository.findOneOrFail({ where : { username: updateRoleDto.username }});
           const changingRoleUser = await this.userRepository.findOne({ where : { username }});
           const toBeChangedRole = updateRoleDto.roleName;   
           const fetchedUserRoleName = await this.roleRepository.findOne({ where : { roleId: fetchedUser.roleId } });

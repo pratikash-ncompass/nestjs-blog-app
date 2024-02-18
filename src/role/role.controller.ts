@@ -1,9 +1,10 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
+import { Request } from "express";
+
 import { UpdateRoleDto } from "./dtos/update-role.dto";
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
 import { CustomApiResponse } from "src/utils/send-response";
 import { RoleService } from "./role.service";
-import { Request } from "express";
 
 
 @Controller('role')

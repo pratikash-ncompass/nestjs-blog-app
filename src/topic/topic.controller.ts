@@ -1,10 +1,10 @@
-import { Body, Controller, Patch, Post, Req, Res, UseGuards } from "@nestjs/common";
-import { Request, Response } from "express";
+import { Body, Controller, Patch, Post, Req, UseGuards } from "@nestjs/common";
+import { Request } from "express";
 
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
+import { CustomApiResponse } from "src/utils/send-response";
 import { TopicService } from "./topic.service";
 import { CreateTopicDto } from "./dtos/create-topic.dto";
-import { CustomApiResponse } from "src/utils/send-response";
 import { AssignTopicDto } from "./dtos/assign-topic.dto";
 
 

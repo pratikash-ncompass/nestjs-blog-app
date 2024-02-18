@@ -5,9 +5,9 @@ import { Request } from "express";
 
 import { Topic } from "src/entities/topic";
 import { User } from "src/entities/user";
+import { PermissionTable } from "src/entities/permission";
 import { CreateTopicDto } from "./dtos/create-topic.dto";
 import { AssignTopicDto } from "./dtos/assign-topic.dto";
-import { PermissionTable } from "src/entities/permission";
 
 @Injectable() 
 export class TopicService {

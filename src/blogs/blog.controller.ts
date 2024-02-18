@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpException, Param, Patch, Post, Put, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 
 import { BlogService } from './blog.service';
@@ -6,9 +6,6 @@ import { CreateBlogDto } from './dto/create-blog.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { CustomApiResponse } from 'src/utils/send-response';
 import { UpdateBlogDto } from './dto/update-blog.dto';
-import { TopicService } from 'src/topic/topic.service';
-import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
-import { GlobalExceptionFilter } from 'src/utils/error-handler';
 
 @Controller('blog')
 export class BlogController {
@@ -41,13 +38,13 @@ export class BlogController {
       const topicId = await this.blogService.findTopicId(topicName); 
       
       if (!topicId) {
-        throw new UnauthorizedException();
+        throw new UnauthorizedException('Blog not found.');
       }
       
       const fetchedBlogs = await this.blogService.getBlogsOfATopic(topicId, req);
       return new CustomApiResponse(200, 'Blogs fetched succesfully', fetchedBlogs);
     } catch (error) {
-      throw new Error('Blog Not Found');
+      throw new Error(error);
     }
 
   }
