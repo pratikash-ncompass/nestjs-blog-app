@@ -14,10 +14,10 @@ import { Role } from 'src/entities/role';
       isGlobal: true
     }),
     TypeOrmModule.forFeature([User, Role]),
-    JwtModule.register({
-      secret: process.env.SECRET_KEY,
-      signOptions: { expiresIn: process.env.EXPIRES_IN },
-    }),
+    // JwtModule.register({
+    //   secret: process.env.SECRET_KEY,
+    //   signOptions: { expiresIn: process.env.EXPIRES_IN },
+    // }),
     PassportModule
     ],
   controllers: [RoleController],
