@@ -15,27 +15,19 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
+    const hashedPassword = md5(createUserDto.password);
+    const newUser = this.userRepository.create({
+      ...createUserDto,
+      password: hashedPassword,
+    });
 
-    try {
+    const savedUser = await this.userRepository.save(newUser);
+    const { password, userId, roleId, ...userDetails } = savedUser;
+    const roleName = (await this.roleRepository.findOne({ where: { roleId } }))
+      .roleName;
 
-      const hashedPassword = md5(createUserDto.password);    
-      const newUser = this.userRepository.create({ 
-        ...createUserDto, 
-        password: hashedPassword });
-  
-      const savedUser = await this.userRepository.save(newUser);
-      const { password, userId, roleId, ...userDetails } = savedUser;
-      const roleName = (await this.roleRepository.findOne({ where : { roleId } })).roleName;
-      
-      const fetchedDetails = {...userDetails, roleName};
-      return fetchedDetails;
-      
-    } catch (error) {
-      
-      throw new Error(error)
-
-    }
-
+    const fetchedDetails = { ...userDetails, roleName };
+    return fetchedDetails;
   }
 
   // async findUserById(id: string) {
@@ -47,12 +39,16 @@ export class UsersService {
   // }
 
   async userDetails(username: string) {
-    const fetchedUser = await this.userRepository.findOne({ where: { username }});
+    const fetchedUser = await this.userRepository.findOne({
+      where: { username },
+    });
     const { userId, password, roleId, ...userDetails } = fetchedUser;
-    const fetchedUserRoleName = await this.roleRepository.findOne({ where : { roleId } })
+    const fetchedUserRoleName = await this.roleRepository.findOne({
+      where: { roleId },
+    });
     const roleName = fetchedUserRoleName.roleName;
-    
-    const fetchedDetails = {...userDetails, roleName};
+
+    const fetchedDetails = { ...userDetails, roleName };
     return fetchedDetails;
   }
 }
