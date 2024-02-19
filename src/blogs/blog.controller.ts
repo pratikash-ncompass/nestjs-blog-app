@@ -25,7 +25,10 @@ import { GlobalExceptionFilter } from 'src/utils/error-handler';
 
 @Controller('blog')
 export class BlogController {
-  constructor(private readonly blogService: BlogService) {}
+  constructor(
+    private readonly blogService: BlogService,
+    private readonly topicService: TopicService,
+  ) {}
 
   @UseGuards(JwtAuthGuard)
   @Get()
@@ -51,7 +54,7 @@ export class BlogController {
     @Param('topicname') topicName: string,
     @Req() req: Request,
   ) {
-    const topicId = await this.blogService.findTopicId(topicName);
+    const topicId = await this.topicService.findTopicId(topicName);
 
     if (!topicId) {
       throw new UnauthorizedException();

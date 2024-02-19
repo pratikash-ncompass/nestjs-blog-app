@@ -23,38 +23,44 @@ export class TopicService {
     private permissonRepository: Repository<PermissionTable>,
   ) {}
 
+  async findTopicId(topicName: string) {
+    const topicId = await this.topicRepository.findOne({
+      where: { name: topicName },
+    });
+    return topicId.topicId;
+  }
+
   async createTopic(createTopicDto: CreateTopicDto, req: Request) {
-      const username = req.user['username'];
+    const username = req.user['username'];
 
-      const loggedInUser = await this.userRepository.findOne({
-        where: { username },
-      });
+    const loggedInUser = await this.userRepository.findOne({
+      where: { username },
+    });
 
-      const roleOfLoggedInUser = loggedInUser.roleId;
+    const roleOfLoggedInUser = loggedInUser.roleId;
 
-      if (!(roleOfLoggedInUser === 1 || roleOfLoggedInUser === 2)) {
-        throw new UnauthorizedException('Not authorized to create topics.');
-      }
+    if (!(roleOfLoggedInUser === 1 || roleOfLoggedInUser === 2)) {
+      throw new UnauthorizedException('Not authorized to create topics.');
+    }
 
-      const newTopic = new Topic();
-      newTopic.userId = loggedInUser.userId;
-      newTopic.name = createTopicDto.name;
-      newTopic.desc = createTopicDto.desc;
+    const newTopic = new Topic();
+    newTopic.userId = loggedInUser.userId;
+    newTopic.name = createTopicDto.name;
+    newTopic.desc = createTopicDto.desc;
 
-      const savedTopic = await this.topicRepository.save(newTopic);
+    const savedTopic = await this.topicRepository.save(newTopic);
 
-      const newPermission = new PermissionTable();
-      newPermission.isEditor = true;
-      newPermission.isViewer = true;
-      newPermission.userId = newTopic.userId;
-      newPermission.topicId = newTopic.topicId;
-      newPermission.user = loggedInUser;
-      newPermission.topic = savedTopic;
-      await this.permissonRepository.save(newPermission);
+    const newPermission = new PermissionTable();
+    newPermission.isEditor = true;
+    newPermission.isViewer = true;
+    newPermission.userId = newTopic.userId;
+    newPermission.topicId = newTopic.topicId;
+    newPermission.user = loggedInUser;
+    newPermission.topic = savedTopic;
+    await this.permissonRepository.save(newPermission);
 
-      const { topicId, userId, ...topicDetails } = savedTopic;
-      return topicDetails;
-    
+    const { topicId, userId, ...topicDetails } = savedTopic;
+    return topicDetails;
   }
 
   // async updateTopic(updateTopicDto: UpdateTopicDto, req: Request) {
@@ -104,22 +110,13 @@ export class TopicService {
     // return console.log(userToAssignTopicToRoleId);
 
     let newPermission;
-    if (userToAssignTopicToRoleId === 4) {
+    if (userToAssignTopicToRoleId === 4 || userToAssignTopicToRoleId === 3) {
       newPermission = {
         user: userToAssignTopicTo,
         topic: topicToBeAssigned,
         userId: userToAssignTopicTo.userId,
         topicId: topicToBeAssigned.topicId,
-        isEditor: false,
-        isViewer: true,
-      };
-    } else if (userToAssignTopicToRoleId === 3) {
-      newPermission = {
-        user: userToAssignTopicTo,
-        topic: topicToBeAssigned,
-        userId: userToAssignTopicTo.userId,
-        topicId: topicToBeAssigned.topicId,
-        isEditor: true,
+        isEditor: userToAssignTopicToRoleId === 3,
         isViewer: true,
       };
     } else {

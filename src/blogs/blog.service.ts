@@ -24,12 +24,6 @@ export class BlogService {
     private permissionRepository: Repository<PermissionTable>,
   ) {}
 
-  async findTopicId(topicName: string) {
-    const topicId = await this.topicRepository.findOne({
-      where: { name: topicName },
-    });
-    return topicId.topicId;
-  }
 
   async findBlogId(blogName: string) {
     const blogId = await this.blogRepository.findOne({
@@ -39,6 +33,7 @@ export class BlogService {
   }
 
   async getBlogsOfATopic(topicId: string, req: Request) {
+    
     const username = req.user['username'];
     const loggedInUser = await this.userRepository.findOne({
       where: { username },
