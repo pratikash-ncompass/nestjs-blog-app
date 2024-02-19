@@ -1,5 +1,4 @@
-import { BeforeInsert, Column, Entity, JoinColumn, OneToMany, PrimaryColumn, PrimaryGeneratedColumn} from "typeorm";
-import { v4 as uuidv4 } from 'uuid'
+import { Column, Entity, JoinColumn, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 
 import { Blog } from "./blog";
 

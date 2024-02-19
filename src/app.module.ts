@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module} from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -33,4 +33,4 @@ import { RoleModule } from './role/role.module';
   controllers: [AppController],
   providers: [AppService, {provide:APP_FILTER, useClass: GlobalExceptionFilter}],
 })
-export class AppModule {}
+export class AppModule {};

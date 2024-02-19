@@ -1,4 +1,5 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn} from "typeorm";
+
 import { Topic } from "./topic";
 
 @Entity() 
@@ -23,13 +24,13 @@ export class Blog {
     @Column()
     name: string;
 
-    @Column()
+    @Column({ type: 'text' })
     desc: string;
 
     @Column()
     header: string;
 
-    @Column()
+    @Column({ type: 'text' })
     body: string;
 
     @Column()

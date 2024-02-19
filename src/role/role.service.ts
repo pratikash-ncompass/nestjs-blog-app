@@ -86,7 +86,6 @@ export class RoleService {
       .createQueryBuilder('user')
       .select(['user.username', 'user.roleId'])
       .getMany();
-
     return userData;
   }
 }
