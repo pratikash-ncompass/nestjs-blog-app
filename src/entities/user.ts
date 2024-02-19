@@ -1,5 +1,4 @@
-import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn} from "typeorm";
-import { Role } from "./role";
+import { Column, Entity, PrimaryGeneratedColumn} from "typeorm";
 
 @Entity({ name: 'users' })
 export class User {
